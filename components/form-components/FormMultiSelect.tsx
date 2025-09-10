@@ -5,7 +5,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Text } from '@/components/ui/text';
 import { useEffect, useRef, useState } from 'react';
 import { Control, Controller, RegisterOptions } from 'react-hook-form';
-import { View, StyleSheet, Platform, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import { View, StyleSheet, Platform, TouchableWithoutFeedback, Keyboard, TextInput, Pressable } from 'react-native';
 import { SelectItem } from '../ui/select';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Toggle } from '../ui/toggle';
@@ -25,13 +25,11 @@ type FormSearchableSelectProps = {
 
 export function PopoverPreview({ control, name = "", label = "", rules, placeholder = "", options = [] as any }: FormSearchableSelectProps) {
     const [searchText, setSearchText] = useState('');
+    const inputRef = useRef<TextInput>(null);
 
-    // filter options
     const filteredOptions = options.filter((opt) =>
         opt.label.toLowerCase().includes(searchText.toLowerCase())
     );
-
-    console.log(filteredOptions, 'filteredOptions')
 
     const insets = useSafeAreaInsets()
 
@@ -42,84 +40,90 @@ export function PopoverPreview({ control, name = "", label = "", rules, placehol
         right: 12,
     };
 
+    const triggerRef = React.useRef<any>(null);
+
     return (
-        
-            <View >
-                <Controller
-                    control={control}
-                    name={name}
-                    rules={rules}
-                    render={({ field: { onChange, value }, fieldState: { error }, }) => {
+
+        <View >
+            <Controller
+                control={control}
+                name={name}
+                rules={rules}
+                render={({ field: { onChange, value }, fieldState: { error }, }) => {
 
 
-                        useEffect(() => {
-                            if (value) {
-                                setSearchText(value)
-                            }
-                        }, [])
-
-                        const onPressedChange = (item: any) => {
-                            onChange(item.value)
-                            setSearchText(item.value)
+                    useEffect(() => {
+                        if (value) {
+                            setSearchText(value)
                         }
+                    }, [])
 
-                        const onInputChange = (text: any) => {
-                            setSearchText(text)
-                        }
+                    const onPressedChange = (item: any) => {
+                        onChange(item.value)
+                        setSearchText(item.value)
+                    }
 
-                        return (<>
-                            {label ? (
-                                <Label className="text-md mb-1" nativeID={`${name}-label`}>
-                                    {label}
-                                </Label>
-                            ) : null}
+                    const onInputChange = (text: any) => {
+                        setSearchText(text)
+                        triggerRef.current?.open()
+                    }
 
-                            <Popover >
-                                <PopoverTrigger asChild  >
-                                    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-                                        <Input autoFocus={false} onChangeText={onInputChange} value={searchText} />
-                                    </TouchableWithoutFeedback>
-                                </PopoverTrigger>
-                                <PopoverContent side="bottom" className="w-full" insets={contentInsets}>
-                                    <SafeAreaProvider>
-                                        <View className="gap-4">
-                                            {
+                    return (<>
+                        {label ? (
+                            <Label className="text-md mb-1" nativeID={`${name}-label`}>
+                                {label}
+                            </Label>
+                        ) : null}
 
-                                                size(filteredOptions) > 0 ? filteredOptions?.map((item, index) => (
-                                                    <Overlay key={index} asChild forceMount closeOnPress>
-                                                        <Text
-                                                            onPress={() => onPressedChange(item)}
-                                                            key={'label' + index}
-                                                            className="font-medium leading-none cursor-pointer hover:bg-blue-300"
-                                                        >
-                                                            {item.label}
-                                                        </Text>
-                                                    </Overlay>
+                        <Popover >
+                            <PopoverTrigger asChild ref={triggerRef}  >
+                                {/* <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}> */}
+                                <Input autoFocus={true}
+                                    ref={inputRef}
+                                    onChangeText={onInputChange} value={searchText} />
+                                {/* </TouchableWithoutFeedback> */}
+                            </PopoverTrigger>
+                            
+                            <PopoverContent side="bottom" className="w-full" insets={contentInsets}>
+                                <SafeAreaProvider>
+                                    <View className="gap-4">
+                                        {
 
-                                                )) :
-                                                    <Overlay key={'not-foi=und'} asChild forceMount closeOnPress>
-                                                        <Text
+                                            size(filteredOptions) > 0 ? filteredOptions?.map((item, index) => (
+                                                <Overlay key={index} asChild forceMount closeOnPress>
+                                                    <Text
+                                                        onPress={() => onPressedChange(item)}
+                                                        key={'label' + index}
+                                                        className="font-medium leading-none cursor-pointer hover:bg-blue-300"
+                                                    >
+                                                        {item.label}
+                                                    </Text>
+                                                </Overlay>
 
-                                                            className="font-medium leading-none cursor-pointer hover:bg-blue-300"
-                                                        >
-                                                            Not Found
-                                                        </Text>
-                                                    </Overlay>
-                                            }
-                                        </View>
-                                    </SafeAreaProvider>
-                                </PopoverContent>
-                            </Popover>
+                                            )) :
+                                                <Overlay key={'not-foi=und'} asChild forceMount closeOnPress>
+                                                    <Text
 
-                            {error && (
-                                <View className="mt-1">
-                                    <Label className="text-red-500 text-sm">{error.message}</Label>
-                                </View>
-                            )}
-                        </>)
-                    }}
-                />
-            </View>
+                                                        className="font-medium leading-none cursor-pointer hover:bg-blue-300"
+                                                    >
+                                                        Not Found
+                                                    </Text>
+                                                </Overlay>
+                                        }
+                                    </View>
+                                </SafeAreaProvider>
+                            </PopoverContent>
+                        </Popover>
+
+                        {error && (
+                            <View className="mt-1">
+                                <Label className="text-red-500 text-sm">{error.message}</Label>
+                            </View>
+                        )}
+                    </>)
+                }}
+            />
+        </View>
     );
 }
 
