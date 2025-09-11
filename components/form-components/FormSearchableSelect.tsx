@@ -26,8 +26,6 @@ const FormSearchableSelect = ({ control, name = "", label = "", rules, placehold
         opt.label.toLowerCase().includes(searchText.toLowerCase())
     );
 
-    console.log(searchText,'filteredOptions')
-
     const contentInsets = {
         top: insets.top,
         bottom: Platform.select({ ios: insets.bottom, android: insets.bottom + 24 }),
@@ -52,12 +50,12 @@ const FormSearchableSelect = ({ control, name = "", label = "", rules, placehold
                         <Select onValueChange={onChange} value={value}>
                             <SelectTrigger asChild>
                                 {/* <View className="p-2"> */}
-                                    <Input
-                                        placeholder="Search..."
-                                        value={searchText}
-                                        onChange={(text)=>{console.log(text)}}
-                                        className="border rounded px-2 py-1"
-                                    />
+                                <Input
+                                    placeholder="Search..."
+                                    value={searchText}
+                                    onChange={(text) => { console.log(text) }}
+                                    className="border rounded px-2 py-1"
+                                />
                                 {/* </View> */}
                                 {/* <SelectValue placeholder={placeholder} /> */}
                             </SelectTrigger>

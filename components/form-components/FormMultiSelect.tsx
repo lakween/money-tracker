@@ -1,17 +1,14 @@
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Text } from '@/components/ui/text';
-import { useEffect, useRef, useState } from 'react';
-import { Control, Controller, RegisterOptions } from 'react-hook-form';
-import { View, StyleSheet, Platform, TouchableWithoutFeedback, Keyboard, TextInput, Pressable } from 'react-native';
-import { SelectItem } from '../ui/select';
-import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Toggle } from '../ui/toggle';
-import React from 'react';
-import { Close, Overlay } from '@rn-primitives/popover';
+import { Overlay } from '@rn-primitives/popover';
 import { size } from "lodash";
+import React, { useEffect, useRef, useState } from 'react';
+import { Control, Controller, RegisterOptions } from 'react-hook-form';
+import { Platform, SafeAreaView, StatusBar, StyleSheet, TextInput, View } from 'react-native';
+import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ScrollView } from 'react-native-gesture-handler';
 
 type FormSearchableSelectProps = {
     control: Control;
@@ -19,13 +16,12 @@ type FormSearchableSelectProps = {
     label?: string;
     rules?: RegisterOptions;
     placeholder?: string;
-    options: [{ "label": string, "value": number | string }]
+    options: [{ "label": string, "value": number | string, "desciption": string }]
 };
 
 
 export function PopoverPreview({ control, name = "", label = "", rules, placeholder = "", options = [] as any }: FormSearchableSelectProps) {
     const [searchText, setSearchText] = useState('');
-    const inputRef = useRef<TextInput>(null);
 
     const filteredOptions = options.filter((opt) =>
         opt.label.toLowerCase().includes(searchText.toLowerCase())
@@ -44,13 +40,12 @@ export function PopoverPreview({ control, name = "", label = "", rules, placehol
 
     return (
 
-        <View >
+        <View style={{ flex: 1 }}>
             <Controller
                 control={control}
                 name={name}
                 rules={rules}
                 render={({ field: { onChange, value }, fieldState: { error }, }) => {
-
 
                     useEffect(() => {
                         if (value) {
@@ -61,6 +56,7 @@ export function PopoverPreview({ control, name = "", label = "", rules, placehol
                     const onPressedChange = (item: any) => {
                         onChange(item.value)
                         setSearchText(item.value)
+                        triggerRef.current?.close()
                     }
 
                     const onInputChange = (text: any) => {
@@ -77,41 +73,45 @@ export function PopoverPreview({ control, name = "", label = "", rules, placehol
 
                         <Popover >
                             <PopoverTrigger asChild ref={triggerRef}  >
-                                {/* <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}> */}
                                 <Input autoFocus={true}
-                                    ref={inputRef}
                                     onChangeText={onInputChange} value={searchText} />
-                                {/* </TouchableWithoutFeedback> */}
                             </PopoverTrigger>
-                            
-                            <PopoverContent side="bottom" className="w-full" insets={contentInsets}>
-                                <SafeAreaProvider>
-                                    <View className="gap-4">
-                                        {
 
-                                            size(filteredOptions) > 0 ? filteredOptions?.map((item, index) => (
-                                                <Overlay key={index} asChild forceMount closeOnPress>
+                            <PopoverContent
+                                side="bottom"
+                                style={{ width: '100%', height: 200 }}
+                                pointerEvents="box-none"
+                                avoidCollisions={false}
+                                insets={contentInsets}
+                            >
+                                <View style={{ maxHeight: 200, overflowY: 'scroll' }}>
+                                    <ScrollView
+                                        contentContainerStyle={{ paddingVertical: 8 }}
+                                        keyboardShouldPersistTaps="always"
+                                    >
+                                        {filteredOptions.length > 0 ? (
+                                            filteredOptions.map((item, index) => (
+                                                <View key={index} style={{ marginBottom: 8 }}>
                                                     <Text
                                                         onPress={() => onPressedChange(item)}
-                                                        key={'label' + index}
-                                                        className="font-medium leading-none cursor-pointer hover:bg-blue-300"
+                                                        style={{ fontWeight: '500' }}
                                                     >
                                                         {item.label}
                                                     </Text>
-                                                </Overlay>
-
-                                            )) :
-                                                <Overlay key={'not-foi=und'} asChild forceMount closeOnPress>
-                                                    <Text
-
-                                                        className="font-medium leading-none cursor-pointer hover:bg-blue-300"
-                                                    >
-                                                        Not Found
-                                                    </Text>
-                                                </Overlay>
-                                        }
-                                    </View>
-                                </SafeAreaProvider>
+                                                    {item?.desciption && (
+                                                        <Text style={{ color: '#888', fontSize: 12 }}>
+                                                            {item.desciption}
+                                                        </Text>
+                                                    )}
+                                                </View>
+                                            ))
+                                        ) : (
+                                            <Text style={{ fontWeight: '500', color: 'gray', textAlign: 'center' }}>
+                                                Not Found
+                                            </Text>
+                                        )}
+                                    </ScrollView>
+                                </View>
                             </PopoverContent>
                         </Popover>
 
@@ -130,19 +130,17 @@ export function PopoverPreview({ control, name = "", label = "", rules, placehol
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        padding: 24,
-        backgroundColor: '#eaeaea',
+        paddingTop: StatusBar.currentHeight,
+        maxHeight: 200
     },
-    title: {
-        marginTop: 16,
-        paddingVertical: 8,
-        borderWidth: 4,
-        borderColor: '#20232a',
-        borderRadius: 6,
-        backgroundColor: '#61dafb',
-        color: '#20232a',
-        textAlign: 'center',
-        fontSize: 30,
-        fontWeight: 'bold',
+    scrollView: {
+        backgroundColor: 'pink',
     },
+    text: {
+        fontSize: 42,
+        padding: 12,
+    },
+    maxHeight: {
+        maxHeight: 20
+    }
 });
